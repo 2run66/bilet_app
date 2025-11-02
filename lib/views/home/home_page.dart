@@ -1,0 +1,405 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../../utils/app_colors.dart';
+import '../../controllers/home_controller.dart';
+
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = Get.put(HomeController());
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: RefreshIndicator(
+        onRefresh: controller.refreshData,
+        color: AppColors.primary,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Welcome Section
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(gradient: AppColors.primaryGradient),
+                child: SafeArea(
+                  bottom: false,
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Welcome back!',
+                          style: TextStyle(
+                            color: AppColors.textOnPrimary,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Obx(
+                          () => Text(
+                            controller.userName.value,
+                            style: TextStyle(
+                              color: AppColors.textOnPrimary,
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              // Quick Stats
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard(
+                        'Active Tickets',
+                        '3',
+                        Icons.confirmation_number_outlined,
+                        AppColors.ticketActive,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildStatCard(
+                        'Upcoming',
+                        '5',
+                        Icons.event_outlined,
+                        AppColors.info,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // My Tickets Section
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'My Tickets',
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Get.toNamed('/tickets');
+                      },
+                      child: Text(
+                        'See All',
+                        style: TextStyle(color: AppColors.primary),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Tickets List
+              Obx(
+                () => controller.activeTickets.isEmpty
+                    ? _buildEmptyState('No active tickets')
+                    : SizedBox(
+                        height: 180,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          itemCount: controller.activeTickets.length,
+                          itemBuilder: (context, index) {
+                            final ticket = controller.activeTickets[index];
+                            return _buildTicketCard(ticket);
+                          },
+                        ),
+                      ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Upcoming Events Section
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Upcoming Events',
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Get.toNamed('/browse');
+                      },
+                      child: Text(
+                        'Browse All',
+                        style: TextStyle(color: AppColors.primary),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Events List
+              Obx(
+                () => controller.upcomingEvents.isEmpty
+                    ? _buildEmptyState('No upcoming events')
+                    : ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: controller.upcomingEvents.length,
+                        itemBuilder: (context, index) {
+                          final event = controller.upcomingEvents[index];
+                          return _buildEventCard(event);
+                        },
+                      ),
+              ),
+
+              const SizedBox(height: 24),
+            ],
+          ),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Get.toNamed('/browse');
+        },
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.textOnPrimary,
+        icon: Icon(Icons.search, color: AppColors.textOnPrimary),
+        label: Text(
+          'Browse Events',
+          style: TextStyle(color: AppColors.textOnPrimary),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatCard(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: 32),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            label,
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTicketCard(dynamic ticket) {
+    return Container(
+      width: 280,
+      margin: const EdgeInsets.only(right: 12),
+      decoration: BoxDecoration(
+        gradient: AppColors.ticketGradient,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadow,
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.confirmation_number,
+                  color: AppColors.textOnPrimary,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'TICKET',
+                  style: TextStyle(
+                    color: AppColors.textOnPrimary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Summer Music Festival',
+              style: TextStyle(
+                color: AppColors.textOnPrimary,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(
+                  Icons.calendar_today,
+                  color: AppColors.textOnPrimary.withValues(alpha: 0.8),
+                  size: 14,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'Dec 25, 2024',
+                  style: TextStyle(
+                    color: AppColors.textOnPrimary.withValues(alpha: 0.8),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Icon(
+                  Icons.location_on,
+                  color: AppColors.textOnPrimary.withValues(alpha: 0.8),
+                  size: 14,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'Central Park, NY',
+                  style: TextStyle(
+                    color: AppColors.textOnPrimary.withValues(alpha: 0.8),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+            const Spacer(),
+            ElevatedButton(
+              onPressed: () {
+                Get.toNamed('/ticket-detail');
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.textOnPrimary,
+                foregroundColor: AppColors.primary,
+                minimumSize: const Size(double.infinity, 40),
+              ),
+              child: const Text('View Ticket'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEventCard(dynamic event) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(12),
+        leading: Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+            color: AppColors.surfaceVariant,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(Icons.event, color: AppColors.primary, size: 30),
+        ),
+        title: Text(
+          'Tech Conference 2024',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 4),
+            Text(
+              'Jan 15, 2024 • Convention Center',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '\$25.00',
+              style: TextStyle(
+                color: AppColors.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        trailing: Icon(
+          Icons.arrow_forward_ios,
+          color: AppColors.textTertiary,
+          size: 16,
+        ),
+        onTap: () {
+          Get.toNamed('/event-detail');
+        },
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          children: [
+            Icon(Icons.inbox_outlined, size: 64, color: AppColors.textTertiary),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
