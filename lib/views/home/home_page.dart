@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../utils/app_colors.dart';
 import '../../controllers/home_controller.dart';
+import '../../controllers/navigation_controller.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -20,34 +21,117 @@ class HomePage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Welcome Section
+              // Modern Header Section
               Container(
                 width: double.infinity,
-                decoration: BoxDecoration(gradient: AppColors.primaryGradient),
+                decoration: BoxDecoration(
+                  gradient: AppColors.primaryGradient,
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(32),
+                    bottomRight: Radius.circular(32),
+                  ),
+                ),
                 child: SafeArea(
                   bottom: false,
                   child: Padding(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Welcome back!',
-                          style: TextStyle(
-                            color: AppColors.textOnPrimary,
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Obx(
-                          () => Text(
-                            controller.userName.value,
-                            style: TextStyle(
-                              color: AppColors.textOnPrimary,
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
+                        // Top bar with greeting and icons
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        'Hello',
+                                        style: TextStyle(
+                                          color: AppColors.textOnPrimary
+                                              .withValues(alpha: 0.9),
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        '👋',
+                                        style: const TextStyle(fontSize: 16),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Obx(
+                                    () => Text(
+                                      controller.userName.value,
+                                      style: TextStyle(
+                                        color: AppColors.textOnPrimary,
+                                        fontSize: 26,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: -0.5,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
+                            Row(
+                              children: [
+                                // Notification Icon
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: AppColors.textOnPrimary.withValues(
+                                      alpha: 0.2,
+                                    ),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: IconButton(
+                                    icon: Icon(
+                                      Icons.notifications_outlined,
+                                      color: AppColors.textOnPrimary,
+                                      size: 24,
+                                    ),
+                                    onPressed: () {
+                                      Get.snackbar(
+                                        'Notifications',
+                                        'No new notifications',
+                                        snackPosition: SnackPosition.TOP,
+                                        backgroundColor: AppColors.surface,
+                                        colorText: AppColors.textPrimary,
+                                      );
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                // Profile Avatar
+                                GestureDetector(
+                                  onTap: () => Get.toNamed('/account'),
+                                  child: Container(
+                                    width: 44,
+                                    height: 44,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.textOnPrimary,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: AppColors.textOnPrimary
+                                            .withValues(alpha: 0.3),
+                                        width: 2,
+                                      ),
+                                    ),
+                                    child: Icon(
+                                      Icons.person,
+                                      color: AppColors.primary,
+                                      size: 24,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -97,7 +181,10 @@ class HomePage extends StatelessWidget {
                     ),
                     TextButton(
                       onPressed: () {
-                        Get.toNamed('/tickets');
+                        final navController = Get.find<NavigationController>();
+                        navController.changeTab(
+                          2,
+                        ); // Switch to tickets tab (index 2)
                       },
                       child: Text(
                         'See All',
@@ -144,7 +231,10 @@ class HomePage extends StatelessWidget {
                     ),
                     TextButton(
                       onPressed: () {
-                        Get.toNamed('/browse');
+                        final navController = Get.find<NavigationController>();
+                        navController.changeTab(
+                          1,
+                        ); // Switch to browse tab (index 1)
                       },
                       child: Text(
                         'Browse All',
@@ -174,18 +264,6 @@ class HomePage extends StatelessWidget {
               const SizedBox(height: 24),
             ],
           ),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Get.toNamed('/browse');
-        },
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.textOnPrimary,
-        icon: Icon(Icons.search, color: AppColors.textOnPrimary),
-        label: Text(
-          'Browse Events',
-          style: TextStyle(color: AppColors.textOnPrimary),
         ),
       ),
     );

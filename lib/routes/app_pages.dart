@@ -10,6 +10,7 @@ import '../views/tickets/ticket_detail_page.dart';
 import '../views/events/browse_events_page.dart';
 import '../views/events/event_detail_page.dart';
 import '../views/checkout/checkout_page.dart';
+import '../views/account/account_page.dart';
 
 part 'app_routes.dart';
 
@@ -33,5 +34,6 @@ class AppPages {
     GetPage(name: _Paths.BROWSE, page: () => const BrowseEventsPage()),
     GetPage(name: _Paths.EVENT_DETAIL, page: () => const EventDetailPage()),
     GetPage(name: _Paths.CHECKOUT, page: () => const CheckoutPage()),
+    GetPage(name: _Paths.ACCOUNT, page: () => const AccountPage()),
   ];
 }
