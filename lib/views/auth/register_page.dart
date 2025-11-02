@@ -18,6 +18,8 @@ class _RegisterPageState extends State<RegisterPage> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _authController = Get.find<AuthController>();
+  
+  String _selectedAccountType = 'user'; // Default to user
 
   @override
   void dispose() {
@@ -38,6 +40,7 @@ class _RegisterPageState extends State<RegisterPage> {
         phone: _phoneController.text.trim().isEmpty
             ? null
             : _phoneController.text.trim(),
+        role: _selectedAccountType, // Pass selected account type
       );
     }
   }
@@ -138,7 +141,38 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
+
+                // Account Type Selection
+                Text(
+                  'Account Type',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildAccountTypeCard(
+                        type: 'user',
+                        icon: Icons.person_outline,
+                        title: 'User',
+                        description: 'Browse & buy tickets',
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildAccountTypeCard(
+                        type: 'organizer',
+                        icon: Icons.business_center_outlined,
+                        title: 'Organizer',
+                        description: 'Create & manage events',
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
 
                 // Password Field
                 Obx(
@@ -240,6 +274,69 @@ class _RegisterPageState extends State<RegisterPage> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAccountTypeCard({
+    required String type,
+    required IconData icon,
+    required String title,
+    required String description,
+  }) {
+    final isSelected = _selectedAccountType == type;
+    
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedAccountType = type;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? AppColors.primary.withOpacity(0.1)
+              : AppColors.surface,
+          border: Border.all(
+            color: isSelected 
+                ? AppColors.primary
+                : AppColors.surface,
+            width: 2,
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              size: 40,
+              color: isSelected 
+                  ? AppColors.primary
+                  : AppColors.textSecondary,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: TextStyle(
+                color: isSelected 
+                    ? AppColors.primary
+                    : AppColors.textPrimary,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              description,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+              ),
+            ),
+          ],
         ),
       ),
     );

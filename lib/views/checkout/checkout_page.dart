@@ -9,6 +9,10 @@ class CheckoutPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(CheckoutController());
+    final eventData = Get.arguments as Map<String, dynamic>?;
+    final eventId = eventData?['eventId'] as String? ?? 'e1';
+    final eventTitle =
+        eventData?['title'] as String? ?? 'Summer Music Festival 2024';
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -44,7 +48,7 @@ class CheckoutPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Summer Music Festival 2024',
+                      eventTitle,
                       style: TextStyle(
                         color: AppColors.textOnPrimary,
                         fontSize: 20,
@@ -247,7 +251,7 @@ class CheckoutPage extends StatelessWidget {
             () => ElevatedButton(
               onPressed: controller.canProceed
                   ? () {
-                      controller.processPurchase();
+                      controller.processPurchase(eventId);
                     }
                   : null,
               style: ElevatedButton.styleFrom(

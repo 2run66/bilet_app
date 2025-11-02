@@ -14,6 +14,12 @@ abstract class Routes {
   static const EVENT_DETAIL = _Paths.EVENT_DETAIL;
   static const CHECKOUT = _Paths.CHECKOUT;
   static const ACCOUNT = _Paths.ACCOUNT;
+  
+  // Organizer routes
+  static const ORGANIZER_DASHBOARD = _Paths.ORGANIZER_DASHBOARD;
+  static const ORGANIZER_SCANNER = _Paths.ORGANIZER_SCANNER;
+  static const ORGANIZER_CREATE_EVENT = _Paths.ORGANIZER_CREATE_EVENT;
+  static const ORGANIZER_EVENT_ATTENDEES = _Paths.ORGANIZER_EVENT_ATTENDEES;
 }
 
 abstract class _Paths {
@@ -30,4 +36,10 @@ abstract class _Paths {
   static const EVENT_DETAIL = '/event-detail';
   static const CHECKOUT = '/checkout';
   static const ACCOUNT = '/account';
+  
+  // Organizer paths
+  static const ORGANIZER_DASHBOARD = '/organizer';
+  static const ORGANIZER_SCANNER = '/organizer/scanner';
+  static const ORGANIZER_CREATE_EVENT = '/organizer/create-event';
+  static const ORGANIZER_EVENT_ATTENDEES = '/organizer/event-attendees';
 }

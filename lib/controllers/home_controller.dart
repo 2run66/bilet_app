@@ -1,9 +1,13 @@
 import 'package:get/get.dart';
 import '../services/auth_service.dart';
+import '../services/api_event_service.dart';
+import '../services/api_ticket_service.dart';
 import '../models/event_model.dart';
 
 class HomeController extends GetxController {
   final AuthService _authService = Get.find<AuthService>();
+  final ApiEventService _eventService = ApiEventService();
+  final ApiTicketService _ticketService = ApiTicketService();
 
   final userName = ''.obs;
   final activeTickets = [].obs;
@@ -29,13 +33,37 @@ class HomeController extends GetxController {
     }
   }
 
-  Future<void> _loadTickets() {
-    // TODO: Load actual tickets from storage/API
-    return Future.value();
+  Future<void> _loadTickets() async {
+    try {
+      final tickets = await _ticketService.getUserTickets();
+      activeTickets.assignAll(tickets.where((t) => t.isUpcoming));
+    } catch (e) {
+      print('❌ Load tickets error: $e');
+    }
   }
 
   Future<void> _loadEvents() async {
-    // Mock data for now
+    try {
+      print('🔍 Loading events from API...');
+      // Load upcoming events from API
+      final events = await _eventService.getAllEvents(
+        upcomingOnly: true,
+        limit: 20,
+      );
+      
+      print('✅ Loaded ${events.length} events from API');
+      upcomingEvents.assignAll(events);
+      featuredEvents.assignAll(events.take(3));
+    } catch (e) {
+      print('❌ Load events error: $e');
+      print('Stack trace: ${StackTrace.current}');
+      // Fallback to mock data if API fails
+      _loadMockEvents();
+    }
+  }
+
+  Future<void> _loadMockEvents() async {
+    // Fallback mock data if API is unavailable
     final now = DateTime.now();
     final mock = <EventModel>[
       EventModel(

@@ -1,18 +1,19 @@
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import '../models/user_model.dart';
+import 'api_auth_service.dart';
 
 class AuthService extends GetxService {
   final _storage = GetStorage();
+  final _apiAuth = ApiAuthService();
   final _currentUser = Rxn<UserModel>();
 
   UserModel? get currentUser => _currentUser.value;
-  bool get isAuthenticated => _currentUser.value != null;
+  bool get isAuthenticated =>
+      _currentUser.value != null && _apiAuth.isAuthenticated();
 
   // Storage keys
   static const String _userKey = 'current_user';
-  static const String _usersKey = 'registered_users';
-  static const String _tokenKey = 'auth_token';
 
   @override
   void onInit() {
@@ -21,105 +22,77 @@ class AuthService extends GetxService {
   }
 
   // Load user from storage on app start
-  void _loadUserFromStorage() {
+  void _loadUserFromStorage() async {
     final userData = _storage.read(_userKey);
-    if (userData != null) {
+    if (userData != null && _apiAuth.isAuthenticated()) {
       _currentUser.value = UserModel.fromJson(
         Map<String, dynamic>.from(userData),
       );
+
+      // Verify token is still valid by fetching current user
+      final user = await _apiAuth.getCurrentUser();
+      if (user != null) {
+        _currentUser.value = user;
+        await _storage.write(_userKey, user.toJson());
+      } else {
+        // Token invalid, logout
+        await logout();
+      }
     }
   }
 
-  // Mock Login - checks against stored users
-  Future<bool> login(String email, String password) async {
+  // Login with API
+  Future<Map<String, dynamic>> login(String email, String password) async {
     try {
-      // Simulate network delay
-      await Future.delayed(const Duration(seconds: 1));
+      final result = await _apiAuth.login(email, password);
 
-      // Get all registered users
-      final users = _storage.read<List>(_usersKey) ?? [];
-
-      // Find user with matching email and password
-      final userMap = users.firstWhereOrNull(
-        (user) => user['email'] == email && user['password'] == password,
-      );
-
-      if (userMap != null) {
-        final user = UserModel.fromJson(Map<String, dynamic>.from(userMap));
-        _currentUser.value = user;
-
-        // Save to storage
-        await _storage.write(_userKey, user.toJson());
-        await _storage.write(_tokenKey, 'mock_token_${user.id}');
-
-        return true;
+      if (result['success']) {
+        _currentUser.value = result['user'];
+        await _storage.write(_userKey, result['user'].toJson());
       }
 
-      return false;
+      return result;
     } catch (e) {
       print('Login error: $e');
-      return false;
+      return {'success': false, 'message': 'Login failed: $e'};
     }
   }
 
-  // Mock Register - stores user locally
-  Future<bool> register({
+  // Register with API
+  Future<Map<String, dynamic>> register({
     required String email,
     required String password,
     required String name,
     String? phone,
+    String? role,
   }) async {
     try {
-      // Simulate network delay
-      await Future.delayed(const Duration(seconds: 1));
-
-      // Get existing users
-      final users = _storage.read<List>(_usersKey) ?? [];
-
-      // Check if email already exists
-      final emailExists = users.any((user) => user['email'] == email);
-      if (emailExists) {
-        return false;
-      }
-
-      // Create new user
-      final newUser = UserModel(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+      final result = await _apiAuth.register(
         email: email,
+        password: password,
         name: name,
         phone: phone,
-        createdAt: DateTime.now(),
+        role: role,
       );
 
-      // Store user with password (in real app, never store plain password!)
-      final userWithPassword = {...newUser.toJson(), 'password': password};
+      if (result['success']) {
+        _currentUser.value = result['user'];
+        await _storage.write(_userKey, result['user'].toJson());
+      }
 
-      users.add(userWithPassword);
-      await _storage.write(_usersKey, users);
-
-      // Auto login after registration
-      _currentUser.value = newUser;
-      await _storage.write(_userKey, newUser.toJson());
-      await _storage.write(_tokenKey, 'mock_token_${newUser.id}');
-
-      return true;
+      return result;
     } catch (e) {
       print('Register error: $e');
-      return false;
+      return {'success': false, 'message': 'Registration failed: $e'};
     }
   }
 
-  // Mock Forgot Password
+  // Forgot Password (TODO: Implement in backend)
   Future<bool> resetPassword(String email) async {
     try {
-      // Simulate network delay
-      await Future.delayed(const Duration(seconds: 1));
-
-      // Check if email exists
-      final users = _storage.read<List>(_usersKey) ?? [];
-      final emailExists = users.any((user) => user['email'] == email);
-
-      return emailExists;
+      // This endpoint doesn't exist in backend yet
+      // For now, return false
+      return false;
     } catch (e) {
       print('Reset password error: $e');
       return false;
@@ -130,7 +103,7 @@ class AuthService extends GetxService {
   Future<void> logout() async {
     _currentUser.value = null;
     await _storage.remove(_userKey);
-    await _storage.remove(_tokenKey);
+    await _apiAuth.logout();
   }
 
   // Update user profile
@@ -145,9 +118,19 @@ class AuthService extends GetxService {
     }
   }
 
+  // Refresh current user data from API
+  Future<void> refreshUser() async {
+    final user = await _apiAuth.getCurrentUser();
+    if (user != null) {
+      _currentUser.value = user;
+      await _storage.write(_userKey, user.toJson());
+    }
+  }
+
   // Clear all data (useful for testing)
   Future<void> clearAllData() async {
     await _storage.erase();
     _currentUser.value = null;
+    await _apiAuth.logout();
   }
 }

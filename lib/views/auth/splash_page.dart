@@ -26,7 +26,12 @@ class _SplashPageState extends State<SplashPage> {
     final authService = Get.find<AuthService>();
 
     if (authService.isAuthenticated) {
-      Get.offAllNamed(Routes.MAIN);
+      // Check user role and navigate accordingly
+      if (authService.currentUser?.isOrganizer == true) {
+        Get.offAllNamed(Routes.ORGANIZER_DASHBOARD);
+      } else {
+        Get.offAllNamed(Routes.MAIN);
+      }
     } else {
       Get.offAllNamed(Routes.LOGIN);
     }

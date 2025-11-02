@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import '../utils/app_colors.dart';
+import '../services/api_event_service.dart';
 
 class CheckoutController extends GetxController {
   final quantity = 1.obs;
@@ -32,27 +33,53 @@ class CheckoutController extends GetxController {
     }
   }
 
-  Future<void> processPurchase() async {
+  Future<void> processPurchase(String eventId) async {
     if (!canProceed) return;
 
     isProcessing.value = true;
 
-    // Simulate payment processing
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      // Call API to purchase ticket
+      final eventService = Get.find<ApiEventService>();
+      final result = await eventService.purchaseTicket(
+        eventId: eventId,
+        quantity: quantity.value,
+      );
 
-    isProcessing.value = false;
-
+      if (result['success']) {
     // Show success message
     Get.snackbar(
       'Success!',
-      'Your ticket has been purchased',
+          result['message'] ?? 'Your ticket has been purchased',
       snackPosition: SnackPosition.BOTTOM,
       backgroundColor: AppColors.success,
       colorText: AppColors.textOnPrimary,
       duration: const Duration(seconds: 3),
     );
 
-    // TODO: Navigate to ticket detail or my tickets page
-    // Get.offAllNamed('/tickets');
+        // Navigate to tickets page
+        Get.offAllNamed('/tickets');
+      } else {
+        // Show error message
+        Get.snackbar(
+          'Error',
+          result['message'] ?? 'Failed to purchase ticket',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: AppColors.error,
+          colorText: AppColors.textOnPrimary,
+        );
+      }
+    } catch (e) {
+      print('❌ Purchase error: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to process purchase',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppColors.error,
+        colorText: AppColors.textOnPrimary,
+      );
+    } finally {
+      isProcessing.value = false;
+    }
   }
 }

@@ -3,6 +3,7 @@ class UserModel {
   final String email;
   final String name;
   final String? phone;
+  final String role; // 'user', 'organizer', 'admin'
   final DateTime? createdAt;
 
   UserModel({
@@ -10,8 +11,14 @@ class UserModel {
     required this.email,
     required this.name,
     this.phone,
+    this.role = 'user',
     this.createdAt,
   });
+
+  // Computed properties
+  bool get isOrganizer => role == 'organizer' || role == 'admin';
+  bool get isAdmin => role == 'admin';
+  bool get isUser => role == 'user';
 
   // Convert to JSON for storage
   Map<String, dynamic> toJson() {
@@ -20,6 +27,7 @@ class UserModel {
       'email': email,
       'name': name,
       'phone': phone,
+      'role': role,
       'createdAt': createdAt?.toIso8601String(),
     };
   }
@@ -31,6 +39,7 @@ class UserModel {
       email: json['email'] as String,
       name: json['name'] as String,
       phone: json['phone'] as String?,
+      role: json['role'] as String? ?? 'user',
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'] as String)
           : null,
@@ -43,6 +52,7 @@ class UserModel {
     String? email,
     String? name,
     String? phone,
+    String? role,
     DateTime? createdAt,
   }) {
     return UserModel(
@@ -50,6 +60,7 @@ class UserModel {
       email: email ?? this.email,
       name: name ?? this.name,
       phone: phone ?? this.phone,
+      role: role ?? this.role,
       createdAt: createdAt ?? this.createdAt,
     );
   }

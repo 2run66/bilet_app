@@ -142,26 +142,28 @@ class HomePage extends StatelessWidget {
               // Quick Stats
               Padding(
                 padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _buildStatCard(
-                        'Active Tickets',
-                        '3',
-                        Icons.confirmation_number_outlined,
-                        AppColors.ticketActive,
+                child: Obx(
+                  () => Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
+                          'Active Tickets',
+                          '${controller.activeTickets.length}',
+                          Icons.confirmation_number_outlined,
+                          AppColors.ticketActive,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildStatCard(
-                        'Upcoming',
-                        '5',
-                        Icons.event_outlined,
-                        AppColors.info,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildStatCard(
+                          'Upcoming',
+                          '${controller.upcomingEvents.length}',
+                          Icons.event_outlined,
+                          AppColors.info,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
 

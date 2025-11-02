@@ -38,8 +38,15 @@ dependencies:
   # State Management & Navigation
   get: ^4.6.6
   
-  # Local Storage (for mock auth)
+  # Local Storage
   get_storage: ^2.1.1
+  
+  # HTTP Client
+  dio: ^5.4.0
+  
+  # QR Code Scanner
+  qr_code_scanner: ^1.0.1
+  permission_handler: ^11.0.1
   
   # Form Validation
   form_field_validator: ^1.1.0

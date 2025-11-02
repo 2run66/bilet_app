@@ -46,6 +46,13 @@ class TicketModel {
 
   // Create from JSON
   factory TicketModel.fromJson(Map<String, dynamic> json) {
+    // Parse status - handle both "active" and "TicketStatus.active" formats
+    String statusStr = json['status'] as String;
+    if (statusStr.contains('.')) {
+      // Format: "TicketStatus.active" -> "active"
+      statusStr = statusStr.split('.').last;
+    }
+    
     return TicketModel(
       id: json['id'] as String,
       eventId: json['eventId'] as String,
@@ -54,7 +61,7 @@ class TicketModel {
       eventDate: DateTime.parse(json['eventDate'] as String),
       userId: json['userId'] as String,
       status: TicketStatus.values.firstWhere(
-        (e) => e.toString() == json['status'],
+        (e) => e.name == statusStr,
         orElse: () => TicketStatus.pending,
       ),
       purchaseDate: DateTime.parse(json['purchaseDate'] as String),

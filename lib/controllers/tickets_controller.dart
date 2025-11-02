@@ -1,24 +1,22 @@
 import 'package:get/get.dart';
+import '../models/ticket_model.dart';
+import '../services/api_ticket_service.dart';
 
 class TicketsController extends GetxController {
+  final ApiTicketService _ticketService = ApiTicketService();
+  
   final selectedFilter = 'upcoming'.obs;
-  final allTickets = [].obs;
+  final allTickets = <TicketModel>[].obs;
   final isLoading = false.obs;
 
-  List get filteredTickets {
+  List<TicketModel> get filteredTickets {
     switch (selectedFilter.value) {
       case 'upcoming':
-        return allTickets
-            .where((ticket) => true)
-            .toList(); // TODO: Filter upcoming
+        return allTickets.where((ticket) => ticket.isUpcoming).toList();
       case 'past':
-        return allTickets
-            .where((ticket) => false)
-            .toList(); // TODO: Filter past
+        return allTickets.where((ticket) => ticket.isPast).toList();
       case 'expired':
-        return allTickets
-            .where((ticket) => false)
-            .toList(); // TODO: Filter expired
+        return allTickets.where((ticket) => ticket.isExpired).toList();
       default:
         return allTickets;
     }
@@ -36,9 +34,15 @@ class TicketsController extends GetxController {
 
   Future<void> loadTickets() async {
     isLoading.value = true;
-    // TODO: Load tickets from storage/API
-    await Future.delayed(const Duration(milliseconds: 500));
+    try {
+      final tickets = await _ticketService.getUserTickets();
+      allTickets.assignAll(tickets);
+    } catch (e) {
+      print('❌ Load tickets error: $e');
+      Get.snackbar('Error', 'Failed to load tickets');
+    } finally {
     isLoading.value = false;
+    }
   }
 
   Future<void> refreshTickets() async {

@@ -87,4 +87,19 @@ class EventModel {
 
   // Check if tickets available
   bool get hasTicketsAvailable => availableTickets > 0;
+
+  // Formatted date string
+  String get formattedDate {
+    final months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    final month = months[date.month - 1];
+    final day = date.day.toString().padLeft(2, '0');
+    final year = date.year;
+    final hour = date.hour > 12 ? date.hour - 12 : (date.hour == 0 ? 12 : date.hour);
+    final minute = date.minute.toString().padLeft(2, '0');
+    final period = date.hour >= 12 ? 'PM' : 'AM';
+    return '$month $day, $year • $hour:$minute $period';
+  }
 }

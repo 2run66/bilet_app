@@ -60,36 +60,39 @@ class BrowseEventsPage extends StatelessWidget {
             height: 50,
             color: AppColors.surface,
             child: Obx(
-              () => ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: controller.categories.length,
-                itemBuilder: (context, index) {
-                  final category = controller.categories[index];
-                  final isSelected =
-                      controller.selectedCategory.value == category;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: ChoiceChip(
-                      label: Text(category),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        controller.selectCategory(category);
-                      },
-                      backgroundColor: AppColors.surfaceVariant,
-                      selectedColor: AppColors.primary,
-                      labelStyle: TextStyle(
-                        color: isSelected
-                            ? AppColors.textOnPrimary
-                            : AppColors.textPrimary,
-                        fontWeight: isSelected
-                            ? FontWeight.bold
-                            : FontWeight.normal,
+              () {
+                // Force rebuild by accessing the observable value
+                final selected = controller.selectedCategory.value;
+                return ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: controller.categories.map((category) {
+                    final isSelected = selected == category;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ChoiceChip(
+                        label: Text(category),
+                        selected: isSelected,
+                        onSelected: (value) {
+                          if (value) {
+                            controller.selectCategory(category);
+                          }
+                        },
+                        backgroundColor: AppColors.surfaceVariant,
+                        selectedColor: AppColors.primary,
+                        labelStyle: TextStyle(
+                          color: isSelected
+                              ? AppColors.textOnPrimary
+                              : AppColors.textPrimary,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
                       ),
-                    ),
-                  );
-                },
-              ),
+                    );
+                  }).toList(),
+                );
+              },
             ),
           ),
 
@@ -144,31 +147,39 @@ class BrowseEventsPage extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            Get.toNamed('/event-detail');
+            Get.toNamed('/event-detail', arguments: event);
           },
           borderRadius: BorderRadius.circular(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Event Image
-              Container(
-                height: 160,
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceVariant,
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(16),
-                  ),
-                  gradient: AppColors.primaryGradient,
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(16),
                 ),
                 child: Stack(
                   children: [
-                    // TODO: Add actual image
-                    Center(
-                      child: Icon(
-                        Icons.image_outlined,
-                        size: 60,
-                        color: AppColors.textOnPrimary.withValues(alpha: 0.5),
-                      ),
+                    Image.network(
+                      event.imageUrl,
+                      height: 160,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          height: 160,
+                          decoration: BoxDecoration(
+                            gradient: AppColors.primaryGradient,
+                          ),
+                          child: Center(
+                            child: Icon(
+                              Icons.event,
+                              size: 60,
+                              color: AppColors.textOnPrimary.withValues(alpha: 0.5),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                     // Category Badge
                     Positioned(
@@ -184,7 +195,7 @@ class BrowseEventsPage extends StatelessWidget {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          'Music',
+                          event.category,
                           style: TextStyle(
                             color: AppColors.textOnPrimary,
                             fontSize: 12,
@@ -204,7 +215,7 @@ class BrowseEventsPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Summer Music Festival 2024',
+                      event.title,
                       style: TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 18,
@@ -223,7 +234,7 @@ class BrowseEventsPage extends StatelessWidget {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          'Dec 25, 2024',
+                          event.formattedDate,
                           style: TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 14,
@@ -234,14 +245,6 @@ class BrowseEventsPage extends StatelessWidget {
                           Icons.access_time,
                           size: 16,
                           color: AppColors.textSecondary,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          '8:00 PM',
-                          style: TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 14,
-                          ),
                         ),
                       ],
                     ),
@@ -256,7 +259,7 @@ class BrowseEventsPage extends StatelessWidget {
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
-                            'Central Park, New York',
+                            event.location,
                             style: TextStyle(
                               color: AppColors.textSecondary,
                               fontSize: 14,
@@ -271,17 +274,29 @@ class BrowseEventsPage extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          '\$25.00',
-                          style: TextStyle(
-                            color: AppColors.primary,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '\$${event.price.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                color: AppColors.primary,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              '${event.availableTickets} tickets left',
+                              style: TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ),
                         ElevatedButton(
                           onPressed: () {
-                            Get.toNamed('/event-detail');
+                            Get.toNamed('/event-detail', arguments: event);
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,

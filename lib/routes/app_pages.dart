@@ -11,6 +11,10 @@ import '../views/events/browse_events_page.dart';
 import '../views/events/event_detail_page.dart';
 import '../views/checkout/checkout_page.dart';
 import '../views/account/account_page.dart';
+import '../views/organizer/organizer_dashboard_page.dart';
+import '../views/organizer/qr_scanner_page.dart';
+import '../views/organizer/create_event_page.dart';
+import '../views/organizer/event_attendees_page.dart';
 
 part 'app_routes.dart';
 
@@ -35,5 +39,11 @@ class AppPages {
     GetPage(name: _Paths.EVENT_DETAIL, page: () => const EventDetailPage()),
     GetPage(name: _Paths.CHECKOUT, page: () => const CheckoutPage()),
     GetPage(name: _Paths.ACCOUNT, page: () => const AccountPage()),
+    
+    // Organizer routes
+    GetPage(name: _Paths.ORGANIZER_DASHBOARD, page: () => const OrganizerDashboardPage()),
+    GetPage(name: _Paths.ORGANIZER_SCANNER, page: () => const QRScannerPage()),
+    GetPage(name: _Paths.ORGANIZER_CREATE_EVENT, page: () => const CreateEventPage()),
+    GetPage(name: _Paths.ORGANIZER_EVENT_ATTENDEES, page: () => const EventAttendeesPage()),
   ];
 }

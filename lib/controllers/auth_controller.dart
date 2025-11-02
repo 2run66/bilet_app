@@ -24,11 +24,11 @@ class AuthController extends GetxController {
 
     isLoading.value = true;
 
-    final success = await _authService.login(email, password);
+    final result = await _authService.login(email, password);
 
     isLoading.value = false;
 
-    if (success) {
+    if (result['success']) {
       Get.snackbar(
         'Success',
         'Welcome back!',
@@ -36,11 +36,17 @@ class AuthController extends GetxController {
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
-      Get.offAllNamed(Routes.MAIN);
+      
+      // Check user role and navigate accordingly
+      if (_authService.currentUser?.isOrganizer == true) {
+        Get.offAllNamed(Routes.ORGANIZER_DASHBOARD);
+      } else {
+        Get.offAllNamed(Routes.MAIN);
+      }
     } else {
       Get.snackbar(
         'Error',
-        'Invalid email or password',
+        result['message'] ?? 'Invalid email or password',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
@@ -54,6 +60,7 @@ class AuthController extends GetxController {
     required String password,
     required String name,
     String? phone,
+    String? role,  // Added role parameter
   }) async {
     if (email.isEmpty || password.isEmpty || name.isEmpty) {
       Get.snackbar(
@@ -79,16 +86,17 @@ class AuthController extends GetxController {
 
     isLoading.value = true;
 
-    final success = await _authService.register(
+    final result = await _authService.register(
       email: email,
       password: password,
       name: name,
       phone: phone,
+      role: role,  // Pass role to service
     );
 
     isLoading.value = false;
 
-    if (success) {
+    if (result['success']) {
       Get.snackbar(
         'Success',
         'Account created successfully!',
@@ -96,11 +104,17 @@ class AuthController extends GetxController {
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
-      Get.offAllNamed(Routes.MAIN);
+      
+      // Check user role and navigate accordingly
+      if (_authService.currentUser?.isOrganizer == true) {
+        Get.offAllNamed(Routes.ORGANIZER_DASHBOARD);
+      } else {
+        Get.offAllNamed(Routes.MAIN);
+      }
     } else {
       Get.snackbar(
         'Error',
-        'Email already exists',
+        result['message'] ?? 'Email already exists',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,

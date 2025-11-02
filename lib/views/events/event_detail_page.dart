@@ -292,7 +292,10 @@ class EventDetailPage extends StatelessWidget {
               Expanded(
                 child: ElevatedButton(
                   onPressed: () {
-                    Get.toNamed('/checkout');
+                    Get.toNamed('/checkout', arguments: {
+                      'eventId': 'event_id_here', // Pass actual event ID
+                      'title': 'Event Title Here', // Pass actual event title
+                    });
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
