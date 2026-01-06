@@ -10,9 +10,51 @@ class CheckoutPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.put(CheckoutController());
     final eventData = Get.arguments as Map<String, dynamic>?;
-    final eventId = eventData?['eventId'] as String? ?? 'e1';
-    final eventTitle =
-        eventData?['title'] as String? ?? 'Summer Music Festival 2024';
+
+    // Get event info from arguments
+    final eventId = eventData?['eventId'] as String? ?? '';
+    final eventTitle = eventData?['title'] as String? ?? 'Unknown Event';
+    final eventPrice = eventData?['price'] as double? ?? 0.0;
+    final eventDate = eventData?['date'] as String? ?? 'TBD';
+    final eventLocation = eventData?['location'] as String? ?? 'TBD';
+
+    // Update controller price
+    controller.setTicketPrice(eventPrice);
+
+    if (eventId.isEmpty) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.textOnPrimary,
+          title: const Text('Checkout'),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 64, color: AppColors.error),
+              const SizedBox(height: 16),
+              Text(
+                'Invalid event',
+                style: TextStyle(color: AppColors.textPrimary, fontSize: 18),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => Get.back(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                ),
+                child: Text(
+                  'Go Back',
+                  style: TextStyle(color: AppColors.textOnPrimary),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -56,12 +98,9 @@ class CheckoutPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    _buildInfoRow(
-                      Icons.calendar_today,
-                      'Dec 25, 2024 • 8:00 PM',
-                    ),
+                    _buildInfoRow(Icons.calendar_today, eventDate),
                     const SizedBox(height: 8),
-                    _buildInfoRow(Icons.location_on, 'Central Park, NY'),
+                    _buildInfoRow(Icons.location_on, eventLocation),
                   ],
                 ),
               ),
@@ -185,7 +224,11 @@ class CheckoutPage extends StatelessWidget {
                 child: Obx(
                   () => Column(
                     children: [
-                      _buildSummaryRow('Ticket Price', '\$25.00', false),
+                      _buildSummaryRow(
+                        'Ticket Price',
+                        '\$${controller.ticketPrice.toStringAsFixed(2)}',
+                        false,
+                      ),
                       const SizedBox(height: 12),
                       _buildSummaryRow(
                         'Quantity',
@@ -194,7 +237,7 @@ class CheckoutPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       _buildSummaryRow(
-                        'Service Fee',
+                        'Service Fee (10%)',
                         '\$${controller.serviceFee.toStringAsFixed(2)}',
                         false,
                       ),
@@ -295,11 +338,15 @@ class CheckoutPage extends StatelessWidget {
           size: 16,
         ),
         const SizedBox(width: 8),
-        Text(
-          text,
-          style: TextStyle(
-            color: AppColors.textOnPrimary.withValues(alpha: 0.9),
-            fontSize: 14,
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              color: AppColors.textOnPrimary.withValues(alpha: 0.9),
+              fontSize: 14,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],

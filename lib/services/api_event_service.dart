@@ -20,30 +20,29 @@ class ApiEventService extends GetxService {
       if (limit != null) queryParams['limit'] = limit;
 
       print('🌐 Fetching events with params: $queryParams');
-      final response = await _api.get(
-        '/events/',
-        queryParameters: queryParams,
-      );
+      final response = await _api.get('/events/', queryParameters: queryParams);
 
       print('📡 Response status: ${response.statusCode}');
       print('📦 Response data type: ${response.data.runtimeType}');
       print('📦 Response data: ${response.data}');
-      
+
       if (response.statusCode == 200) {
         final responseData = response.data;
         if (responseData == null) {
           print('⚠️ Response data is null');
           return [];
         }
-        
+
         if (!responseData.containsKey('events')) {
-          print('⚠️ Response does not contain "events" key. Keys: ${responseData.keys}');
+          print(
+            '⚠️ Response does not contain "events" key. Keys: ${responseData.keys}',
+          );
           return [];
         }
-        
+
         final List<dynamic> eventsData = responseData['events'];
         print('📦 Received ${eventsData.length} events');
-        
+
         final events = <EventModel>[];
         for (var i = 0; i < eventsData.length; i++) {
           try {
@@ -54,7 +53,7 @@ class ApiEventService extends GetxService {
             print('Event data: ${eventsData[i]}');
           }
         }
-        
+
         print('✅ Successfully parsed ${events.length} EventModel objects');
         return events;
       }
@@ -90,36 +89,40 @@ class ApiEventService extends GetxService {
     int quantity = 1,
   }) async {
     try {
+      print('🎫 Attempting to purchase ticket for event: $eventId');
       final response = await _api.post(
-        '/tickets',
-        data: {
-          'event_id': eventId,
-          'quantity': quantity,
-        },
+        '/tickets/purchase',
+        data: {'eventId': eventId},
       );
+
+      print('🎫 Purchase response: ${response.statusCode} - ${response.data}');
 
       if (response.statusCode == 201) {
         return {
           'success': true,
           'message': response.data['message'],
-          'tickets': response.data['tickets'],
+          'ticket': response.data['ticket'],
         };
       }
 
       return {
         'success': false,
-        'message': response.data['message'] ?? 'Purchase failed'
+        'message':
+            response.data['message'] ??
+            response.data['error'] ??
+            'Purchase failed',
       };
     } catch (e) {
       print('❌ Purchase ticket error: $e');
       String errorMessage = 'Failed to purchase ticket';
 
-      if (e.toString().contains('400')) {
-        errorMessage = 'Invalid request';
+      // Try to extract error message from DioException
+      if (e.toString().contains('401')) {
+        errorMessage = 'Please login to purchase tickets';
+      } else if (e.toString().contains('400')) {
+        errorMessage = 'Invalid event or no tickets available';
       } else if (e.toString().contains('404')) {
         errorMessage = 'Event not found';
-      } else if (e.toString().contains('402')) {
-        errorMessage = 'Payment required';
       }
 
       return {'success': false, 'message': errorMessage};
@@ -208,7 +211,9 @@ class ApiEventService extends GetxService {
 
   /// Update event (admin only)
   Future<EventModel?> updateEvent(
-      String eventId, Map<String, dynamic> eventData) async {
+    String eventId,
+    Map<String, dynamic> eventData,
+  ) async {
     try {
       final response = await _api.put('/events/$eventId', data: eventData);
 
@@ -234,4 +239,3 @@ class ApiEventService extends GetxService {
     }
   }
 }
-

@@ -1,6 +1,7 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
+from flasgger import Swagger
 from config import config
 from models import db
 import os
@@ -17,6 +18,46 @@ def create_app(config_name='default'):
     db.init_app(app)
     CORS(app)
     JWTManager(app)
+    
+    # Swagger configuration
+    swagger_config = {
+        "headers": [],
+        "specs": [
+            {
+                "endpoint": "apispec",
+                "route": "/apispec.json",
+                "rule_filter": lambda rule: True,
+                "model_filter": lambda tag: True,
+            }
+        ],
+        "static_url_path": "/flasgger_static",
+        "swagger_ui": True,
+        "specs_route": "/apidocs/"
+    }
+    
+    swagger_template = {
+        "swagger": "2.0",
+        "info": {
+            "title": "Bilet App API",
+            "description": "API documentation for Bilet App - Event Ticketing Platform",
+            "version": "1.0.0",
+            "contact": {
+                "name": "Bilet App Team"
+            }
+        },
+        "basePath": "/api",
+        "schemes": ["http", "https"],
+        "securityDefinitions": {
+            "Bearer": {
+                "type": "apiKey",
+                "name": "Authorization",
+                "in": "header",
+                "description": "JWT Authorization header using the Bearer scheme. Example: 'Bearer {token}'"
+            }
+        }
+    }
+    
+    Swagger(app, config=swagger_config, template=swagger_template)
     
     # Register blueprints
     from routes.auth_routes import auth_bp
@@ -36,6 +77,23 @@ def create_app(config_name='default'):
     # Health check endpoint
     @app.route('/api/health', methods=['GET'])
     def health_check():
+        """Health check endpoint
+        ---
+        tags:
+          - System
+        responses:
+          200:
+            description: API health status
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: healthy
+                message:
+                  type: string
+                  example: Bilet App API is running
+        """
         return jsonify({
             'status': 'healthy',
             'message': 'Bilet App API is running'
@@ -44,9 +102,29 @@ def create_app(config_name='default'):
     # Root endpoint
     @app.route('/', methods=['GET'])
     def index():
+        """Root endpoint with API information
+        ---
+        tags:
+          - System
+        responses:
+          200:
+            description: API information and available endpoints
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                version:
+                  type: string
+                documentation:
+                  type: string
+                endpoints:
+                  type: object
+        """
         return jsonify({
             'message': 'Welcome to Bilet App API',
             'version': '1.0.0',
+            'documentation': '/apidocs/',
             'endpoints': {
                 'auth': '/api/auth',
                 'events': '/api/events',

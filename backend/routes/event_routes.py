@@ -9,7 +9,56 @@ event_bp = Blueprint('events', __name__, url_prefix='/api/events')
 
 @event_bp.route('/', methods=['GET'])
 def get_events():
-    """Get all events with optional filtering"""
+    """Get all events with optional filtering
+    ---
+    tags:
+      - Events
+    parameters:
+      - name: category
+        in: query
+        type: string
+        description: Filter by event category
+        required: false
+      - name: search
+        in: query
+        type: string
+        description: Search in title, description, and location
+        required: false
+      - name: upcoming
+        in: query
+        type: boolean
+        description: Filter only upcoming events
+        default: false
+        required: false
+      - name: page
+        in: query
+        type: integer
+        description: Page number for pagination
+        default: 1
+        required: false
+      - name: per_page
+        in: query
+        type: integer
+        description: Items per page
+        default: 20
+        required: false
+    responses:
+      200:
+        description: List of events
+        schema:
+          type: object
+          properties:
+            events:
+              type: array
+              items:
+                type: object
+            total:
+              type: integer
+            pages:
+              type: integer
+            current_page:
+              type: integer
+    """
     # Query parameters
     category = request.args.get('category')
     search = request.args.get('search')
@@ -53,7 +102,26 @@ def get_events():
 
 @event_bp.route('/<event_id>', methods=['GET'])
 def get_event(event_id):
-    """Get single event by ID"""
+    """Get single event by ID
+    ---
+    tags:
+      - Events
+    parameters:
+      - name: event_id
+        in: path
+        type: string
+        required: true
+        description: Event ID
+    responses:
+      200:
+        description: Event details
+        schema:
+          type: object
+      400:
+        description: Invalid event ID
+      404:
+        description: Event not found
+    """
     try:
         event = Event.objects(id=event_id).first()
         
@@ -68,7 +136,83 @@ def get_event(event_id):
 @event_bp.route('/', methods=['POST'])
 @jwt_required()
 def create_event():
-    """Create a new event"""
+    """Create a new event
+    ---
+    tags:
+      - Events
+    security:
+      - Bearer: []
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - title
+            - description
+            - category
+            - location
+            - date
+            - price
+            - imageUrl
+            - availableTickets
+            - organizerName
+          properties:
+            title:
+              type: string
+              description: Event title
+              example: Summer Music Festival
+            description:
+              type: string
+              description: Event description
+              example: A fantastic outdoor music event
+            category:
+              type: string
+              description: Event category
+              example: Music
+            location:
+              type: string
+              description: Event location
+              example: Istanbul, Turkey
+            date:
+              type: string
+              format: date-time
+              description: Event date and time (ISO format)
+              example: "2025-07-15T18:00:00Z"
+            price:
+              type: number
+              description: Ticket price
+              example: 150.00
+            imageUrl:
+              type: string
+              description: Event image URL
+              example: https://example.com/image.jpg
+            availableTickets:
+              type: integer
+              description: Number of available tickets
+              example: 500
+            organizerName:
+              type: string
+              description: Event organizer name
+              example: Music Events Ltd.
+    responses:
+      201:
+        description: Event created successfully
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+            event:
+              type: object
+      400:
+        description: Missing required fields or validation error
+      401:
+        description: Unauthorized
+      500:
+        description: Internal server error
+    """
     data = request.get_json()
     
     # Validate required fields
@@ -108,7 +252,62 @@ def create_event():
 @event_bp.route('/<event_id>', methods=['PUT'])
 @jwt_required()
 def update_event(event_id):
-    """Update an event"""
+    """Update an event
+    ---
+    tags:
+      - Events
+    security:
+      - Bearer: []
+    parameters:
+      - name: event_id
+        in: path
+        type: string
+        required: true
+        description: Event ID
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            title:
+              type: string
+            description:
+              type: string
+            category:
+              type: string
+            location:
+              type: string
+            date:
+              type: string
+              format: date-time
+            price:
+              type: number
+            imageUrl:
+              type: string
+            availableTickets:
+              type: integer
+            organizerName:
+              type: string
+    responses:
+      200:
+        description: Event updated successfully
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+            event:
+              type: object
+      400:
+        description: Validation error
+      401:
+        description: Unauthorized
+      404:
+        description: Event not found
+      500:
+        description: Internal server error
+    """
     try:
         event = Event.objects(id=event_id).first()
         
@@ -153,7 +352,33 @@ def update_event(event_id):
 @event_bp.route('/<event_id>', methods=['DELETE'])
 @jwt_required()
 def delete_event(event_id):
-    """Delete an event"""
+    """Delete an event
+    ---
+    tags:
+      - Events
+    security:
+      - Bearer: []
+    parameters:
+      - name: event_id
+        in: path
+        type: string
+        required: true
+        description: Event ID
+    responses:
+      200:
+        description: Event deleted successfully
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+      401:
+        description: Unauthorized
+      404:
+        description: Event not found
+      500:
+        description: Internal server error
+    """
     try:
         event = Event.objects(id=event_id).first()
         
@@ -170,7 +395,21 @@ def delete_event(event_id):
 
 @event_bp.route('/categories', methods=['GET'])
 def get_categories():
-    """Get all unique event categories"""
+    """Get all unique event categories
+    ---
+    tags:
+      - Events
+    responses:
+      200:
+        description: List of categories
+        schema:
+          type: object
+          properties:
+            categories:
+              type: array
+              items:
+                type: string
+    """
     categories = Event.objects.distinct('category')
     
     return jsonify({'categories': categories}), 200

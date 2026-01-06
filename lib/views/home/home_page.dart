@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import '../../utils/app_colors.dart';
 import '../../controllers/home_controller.dart';
 import '../../controllers/navigation_controller.dart';
+import '../../models/event_model.dart';
+import '../../models/ticket_model.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -55,11 +57,6 @@ class HomePage extends StatelessWidget {
                                           fontSize: 16,
                                           fontWeight: FontWeight.w400,
                                         ),
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        '👋',
-                                        style: const TextStyle(fontSize: 16),
                                       ),
                                     ],
                                   ),
@@ -306,7 +303,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildTicketCard(dynamic ticket) {
+  Widget _buildTicketCard(TicketModel ticket) {
     return Container(
       width: 280,
       margin: const EdgeInsets.only(right: 12),
@@ -346,7 +343,7 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Summer Music Festival',
+              ticket.eventTitle,
               style: TextStyle(
                 color: AppColors.textOnPrimary,
                 fontSize: 18,
@@ -364,11 +361,14 @@ class HomePage extends StatelessWidget {
                   size: 14,
                 ),
                 const SizedBox(width: 4),
-                Text(
-                  'Dec 25, 2024',
-                  style: TextStyle(
-                    color: AppColors.textOnPrimary.withValues(alpha: 0.8),
-                    fontSize: 12,
+                Expanded(
+                  child: Text(
+                    ticket.formattedDate,
+                    style: TextStyle(
+                      color: AppColors.textOnPrimary.withValues(alpha: 0.8),
+                      fontSize: 12,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -382,11 +382,14 @@ class HomePage extends StatelessWidget {
                   size: 14,
                 ),
                 const SizedBox(width: 4),
-                Text(
-                  'Central Park, NY',
-                  style: TextStyle(
-                    color: AppColors.textOnPrimary.withValues(alpha: 0.8),
-                    fontSize: 12,
+                Expanded(
+                  child: Text(
+                    ticket.eventLocation,
+                    style: TextStyle(
+                      color: AppColors.textOnPrimary.withValues(alpha: 0.8),
+                      fontSize: 12,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -394,7 +397,7 @@ class HomePage extends StatelessWidget {
             const Spacer(),
             ElevatedButton(
               onPressed: () {
-                Get.toNamed('/ticket-detail');
+                Get.toNamed('/ticket-detail', arguments: ticket);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.textOnPrimary,
@@ -409,7 +412,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildEventCard(dynamic event) {
+  Widget _buildEventCard(EventModel event) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -419,33 +422,48 @@ class HomePage extends StatelessWidget {
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.all(12),
-        leading: Container(
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(
-            color: AppColors.surfaceVariant,
-            borderRadius: BorderRadius.circular(8),
+        leading: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.network(
+            event.imageUrl,
+            width: 60,
+            height: 60,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceVariant,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(Icons.event, color: AppColors.primary, size: 30),
+              );
+            },
           ),
-          child: Icon(Icons.event, color: AppColors.primary, size: 30),
         ),
         title: Text(
-          'Tech Conference 2024',
+          event.title,
           style: TextStyle(
             color: AppColors.textPrimary,
             fontWeight: FontWeight.bold,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 4),
             Text(
-              'Jan 15, 2024 • Convention Center',
+              '${event.formattedDate} • ${event.location}',
               style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 4),
             Text(
-              '\$25.00',
+              '\$${event.price.toStringAsFixed(2)}',
               style: TextStyle(
                 color: AppColors.primary,
                 fontWeight: FontWeight.bold,
@@ -459,7 +477,7 @@ class HomePage extends StatelessWidget {
           size: 16,
         ),
         onTap: () {
-          Get.toNamed('/event-detail');
+          Get.toNamed('/event-detail', arguments: event);
         },
       ),
     );

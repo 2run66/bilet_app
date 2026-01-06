@@ -10,7 +10,7 @@ class ApiService {
       return 'http://10.0.2.2:5050/api';
     } else {
       // iOS simulator and real devices use computer's IP
-      return 'http://172.20.10.3:5050/api';
+      return 'http://172.20.10.2:5050/api';
     }
   }
 

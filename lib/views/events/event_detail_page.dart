@@ -1,12 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../utils/app_colors.dart';
+import '../../models/event_model.dart';
 
 class EventDetailPage extends StatelessWidget {
   const EventDetailPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Get the event from arguments
+    final event = Get.arguments as EventModel?;
+
+    if (event == null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.textOnPrimary,
+          title: const Text('Event Details'),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 64, color: AppColors.error),
+              const SizedBox(height: 16),
+              Text(
+                'Event not found',
+                style: TextStyle(color: AppColors.textPrimary, fontSize: 18),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => Get.back(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                ),
+                child: Text(
+                  'Go Back',
+                  style: TextStyle(color: AppColors.textOnPrimary),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
@@ -22,17 +61,25 @@ class EventDetailPage extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   // Event Image
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
-                    ),
-                    child: Center(
-                      child: Icon(
-                        Icons.image_outlined,
-                        size: 80,
-                        color: AppColors.textOnPrimary.withValues(alpha: 0.5),
-                      ),
-                    ),
+                  Image.network(
+                    event.imageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          gradient: AppColors.primaryGradient,
+                        ),
+                        child: Center(
+                          child: Icon(
+                            Icons.event,
+                            size: 80,
+                            color: AppColors.textOnPrimary.withValues(
+                              alpha: 0.5,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                   // Gradient Overlay
                   Container(
@@ -57,13 +104,23 @@ class EventDetailPage extends StatelessWidget {
                   color: AppColors.textOnPrimary,
                 ),
                 onPressed: () {
-                  // TODO: Add to favorites
+                  Get.snackbar(
+                    'Added to Favorites',
+                    '${event.title} has been added to your favorites',
+                    backgroundColor: AppColors.success,
+                    colorText: AppColors.textOnPrimary,
+                  );
                 },
               ),
               IconButton(
                 icon: Icon(Icons.share, color: AppColors.textOnPrimary),
                 onPressed: () {
-                  // TODO: Share event
+                  Get.snackbar(
+                    'Share',
+                    'Share functionality coming soon!',
+                    backgroundColor: AppColors.info,
+                    colorText: AppColors.textOnPrimary,
+                  );
                 },
               ),
             ],
@@ -87,7 +144,7 @@ class EventDetailPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      'Music Festival',
+                      event.category,
                       style: TextStyle(
                         color: AppColors.textOnPrimary,
                         fontSize: 12,
@@ -99,7 +156,7 @@ class EventDetailPage extends StatelessWidget {
 
                   // Event Title
                   Text(
-                    'Summer Music Festival 2024',
+                    event.title,
                     style: TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 28,
@@ -115,7 +172,7 @@ class EventDetailPage extends StatelessWidget {
                         child: _buildInfoCard(
                           Icons.calendar_today,
                           'Date',
-                          'Dec 25, 2024',
+                          _formatDate(event.date),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -123,17 +180,13 @@ class EventDetailPage extends StatelessWidget {
                         child: _buildInfoCard(
                           Icons.access_time,
                           'Time',
-                          '8:00 PM',
+                          _formatTime(event.date),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  _buildInfoCard(
-                    Icons.location_on,
-                    'Location',
-                    'Central Park, New York, NY 10024',
-                  ),
+                  _buildInfoCard(Icons.location_on, 'Location', event.location),
                   const SizedBox(height: 24),
 
                   // About Section
@@ -147,7 +200,7 @@ class EventDetailPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Join us for an unforgettable evening of live music featuring top artists from around the world. Experience amazing performances, great food, and create memories that will last a lifetime.',
+                    event.description,
                     style: TextStyle(
                       color: AppColors.textSecondary,
                       fontSize: 15,
@@ -189,7 +242,7 @@ class EventDetailPage extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Live Events Co.',
+                                event.organizerName,
                                 style: TextStyle(
                                   color: AppColors.textPrimary,
                                   fontSize: 16,
@@ -197,7 +250,7 @@ class EventDetailPage extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                'Professional event organizer',
+                                'Event Organizer',
                                 style: TextStyle(
                                   color: AppColors.textSecondary,
                                   fontSize: 13,
@@ -205,15 +258,6 @@ class EventDetailPage extends StatelessWidget {
                               ),
                             ],
                           ),
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            Icons.arrow_forward_ios,
-                            color: AppColors.textSecondary,
-                          ),
-                          onPressed: () {
-                            // TODO: View organizer profile
-                          },
                         ),
                       ],
                     ),
@@ -224,17 +268,32 @@ class EventDetailPage extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.info.withValues(alpha: 0.1),
+                      color: event.hasTicketsAvailable
+                          ? AppColors.info.withValues(alpha: 0.1)
+                          : AppColors.error.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.info),
+                      border: Border.all(
+                        color: event.hasTicketsAvailable
+                            ? AppColors.info
+                            : AppColors.error,
+                      ),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.info_outline, color: AppColors.info),
+                        Icon(
+                          event.hasTicketsAvailable
+                              ? Icons.confirmation_number
+                              : Icons.block,
+                          color: event.hasTicketsAvailable
+                              ? AppColors.info
+                              : AppColors.error,
+                        ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            '245 tickets available',
+                            event.hasTicketsAvailable
+                                ? '${event.availableTickets} tickets available'
+                                : 'Sold Out',
                             style: TextStyle(
                               color: AppColors.textPrimary,
                               fontSize: 15,
@@ -279,7 +338,7 @@ class EventDetailPage extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '\$25.00',
+                    '\$${event.price.toStringAsFixed(2)}',
                     style: TextStyle(
                       color: AppColors.primary,
                       fontSize: 28,
@@ -291,21 +350,32 @@ class EventDetailPage extends StatelessWidget {
               const SizedBox(width: 20),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {
-                    Get.toNamed('/checkout', arguments: {
-                      'eventId': 'event_id_here', // Pass actual event ID
-                      'title': 'Event Title Here', // Pass actual event title
-                    });
-                  },
+                  onPressed: event.hasTicketsAvailable && event.isUpcoming
+                      ? () {
+                          Get.toNamed(
+                            '/checkout',
+                            arguments: {
+                              'eventId': event.id,
+                              'title': event.title,
+                              'price': event.price,
+                              'date': event.formattedDate,
+                              'location': event.location,
+                            },
+                          );
+                        }
+                      : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
+                    disabledBackgroundColor: AppColors.buttonDisabled,
                     minimumSize: const Size(double.infinity, 56),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                   child: Text(
-                    'Buy Ticket',
+                    event.hasTicketsAvailable
+                        ? (event.isUpcoming ? 'Buy Ticket' : 'Event Ended')
+                        : 'Sold Out',
                     style: TextStyle(
                       color: AppColors.textOnPrimary,
                       fontSize: 18,
@@ -319,6 +389,33 @@ class EventDetailPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatDate(DateTime date) {
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
+
+  String _formatTime(DateTime date) {
+    final hour = date.hour > 12
+        ? date.hour - 12
+        : (date.hour == 0 ? 12 : date.hour);
+    final minute = date.minute.toString().padLeft(2, '0');
+    final period = date.hour >= 12 ? 'PM' : 'AM';
+    return '$hour:$minute $period';
   }
 
   Widget _buildInfoCard(IconData icon, String label, String value) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../utils/app_colors.dart';
 import '../../controllers/tickets_controller.dart';
+import '../../models/ticket_model.dart';
 
 class MyTicketsPage extends StatelessWidget {
   const MyTicketsPage({super.key});
@@ -19,6 +20,8 @@ class MyTicketsPage extends StatelessWidget {
           'My Tickets',
           style: TextStyle(color: AppColors.textOnPrimary),
         ),
+        automaticallyImplyLeading:
+            false, // Hide back button since we have nav bar
       ),
       body: Column(
         children: [
@@ -108,7 +111,7 @@ class MyTicketsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildTicketItem(dynamic ticket) {
+  Widget _buildTicketItem(TicketModel ticket) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -126,7 +129,7 @@ class MyTicketsPage extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            Get.toNamed('/ticket-detail');
+            Get.toNamed('/ticket-detail', arguments: ticket);
           },
           borderRadius: BorderRadius.circular(16),
           child: Padding(
@@ -167,40 +170,41 @@ class MyTicketsPage extends StatelessWidget {
                         ],
                       ),
                     ),
-                    _buildStatusBadge('Active'),
+                    _buildStatusBadge(ticket.status.name),
                   ],
                 ),
                 const SizedBox(height: 20),
 
                 // Event Title
                 Text(
-                  'Summer Music Festival 2024',
+                  ticket.eventTitle,
                   style: TextStyle(
                     color: AppColors.textOnPrimary,
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 16),
 
                 // Event Details
-                _buildDetailRow(
-                  Icons.calendar_today,
-                  'December 25, 2024 • 8:00 PM',
-                ),
+                _buildDetailRow(Icons.calendar_today, ticket.formattedDate),
                 const SizedBox(height: 8),
-                _buildDetailRow(Icons.location_on, 'Central Park, New York'),
-                const SizedBox(height: 8),
-                _buildDetailRow(
-                  Icons.event_seat,
-                  'Section A • Row 5 • Seat 12',
-                ),
+                _buildDetailRow(Icons.location_on, ticket.eventLocation),
+                if (ticket.seatNumber != null) ...[
+                  const SizedBox(height: 8),
+                  _buildDetailRow(
+                    Icons.event_seat,
+                    'Seat: ${ticket.seatNumber}',
+                  ),
+                ],
                 const SizedBox(height: 20),
 
                 // Action Button
                 ElevatedButton(
                   onPressed: () {
-                    Get.toNamed('/ticket-detail');
+                    Get.toNamed('/ticket-detail', arguments: ticket);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.textOnPrimary,

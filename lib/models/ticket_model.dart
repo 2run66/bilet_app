@@ -52,7 +52,7 @@ class TicketModel {
       // Format: "TicketStatus.active" -> "active"
       statusStr = statusStr.split('.').last;
     }
-    
+
     return TicketModel(
       id: json['id'] as String,
       eventId: json['eventId'] as String,
@@ -100,9 +100,10 @@ class TicketModel {
     );
   }
 
-  // Check if ticket is upcoming
+  // Check if ticket is upcoming (active or pending and event in future)
   bool get isUpcoming =>
-      eventDate.isAfter(DateTime.now()) && status == TicketStatus.active;
+      eventDate.isAfter(DateTime.now()) &&
+      (status == TicketStatus.active || status == TicketStatus.pending);
 
   // Check if ticket is past
   bool get isPast =>
@@ -110,4 +111,31 @@ class TicketModel {
 
   // Check if ticket is expired
   bool get isExpired => status == TicketStatus.expired;
+
+  // Formatted date string
+  String get formattedDate {
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    final month = months[eventDate.month - 1];
+    final day = eventDate.day.toString().padLeft(2, '0');
+    final year = eventDate.year;
+    final hour = eventDate.hour > 12
+        ? eventDate.hour - 12
+        : (eventDate.hour == 0 ? 12 : eventDate.hour);
+    final minute = eventDate.minute.toString().padLeft(2, '0');
+    final period = eventDate.hour >= 12 ? 'PM' : 'AM';
+    return '$month $day, $year • $hour:$minute $period';
+  }
 }

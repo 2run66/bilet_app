@@ -13,7 +13,50 @@ ticket_bp = Blueprint('tickets', __name__, url_prefix='/api/tickets')
 @ticket_bp.route('/', methods=['GET'])
 @jwt_required()
 def get_user_tickets():
-    """Get all tickets for current user"""
+    """Get all tickets for current user
+    ---
+    tags:
+      - Tickets
+    security:
+      - Bearer: []
+    parameters:
+      - name: status
+        in: query
+        type: string
+        description: Filter by ticket status
+        required: false
+        enum: [active, used, expired, pending]
+      - name: page
+        in: query
+        type: integer
+        description: Page number for pagination
+        default: 1
+        required: false
+      - name: per_page
+        in: query
+        type: integer
+        description: Items per page
+        default: 20
+        required: false
+    responses:
+      200:
+        description: List of user tickets
+        schema:
+          type: object
+          properties:
+            tickets:
+              type: array
+              items:
+                type: object
+            total:
+              type: integer
+            pages:
+              type: integer
+            current_page:
+              type: integer
+      401:
+        description: Unauthorized
+    """
     current_user_id = get_jwt_identity()
     
     # Query parameters
@@ -45,7 +88,32 @@ def get_user_tickets():
 @ticket_bp.route('/<ticket_id>', methods=['GET'])
 @jwt_required()
 def get_ticket(ticket_id):
-    """Get single ticket by ID"""
+    """Get single ticket by ID
+    ---
+    tags:
+      - Tickets
+    security:
+      - Bearer: []
+    parameters:
+      - name: ticket_id
+        in: path
+        type: string
+        required: true
+        description: Ticket ID
+    responses:
+      200:
+        description: Ticket details
+        schema:
+          type: object
+      400:
+        description: Invalid ticket ID
+      401:
+        description: Unauthorized
+      403:
+        description: Ticket does not belong to user
+      404:
+        description: Ticket not found
+    """
     current_user_id = get_jwt_identity()
     
     try:
@@ -66,7 +134,48 @@ def get_ticket(ticket_id):
 @ticket_bp.route('/purchase', methods=['POST'])
 @jwt_required()
 def purchase_ticket():
-    """Purchase a ticket for an event"""
+    """Purchase a ticket for an event
+    ---
+    tags:
+      - Tickets
+    security:
+      - Bearer: []
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - eventId
+          properties:
+            eventId:
+              type: string
+              description: Event ID to purchase ticket for
+              example: "507f1f77bcf86cd799439011"
+            seatNumber:
+              type: string
+              description: Seat number (optional)
+              example: "A15"
+    responses:
+      201:
+        description: Ticket purchased successfully
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+            ticket:
+              type: object
+      400:
+        description: Event ID required, no tickets available, or past event
+      401:
+        description: Unauthorized
+      404:
+        description: Event or user not found
+      500:
+        description: Internal server error
+    """
     current_user_id = get_jwt_identity()
     data = request.get_json()
     
@@ -109,7 +218,7 @@ def purchase_ticket():
             event_title=event.title,
             event_location=event.location,
             event_date=event.date,
-            status='pending',
+            status='active',  # Set to active since payment is mocked
             price=event.price,
             seat_number=data.get('seatNumber'),
             qr_code=qr_code
@@ -134,7 +243,52 @@ def purchase_ticket():
 @ticket_bp.route('/<ticket_id>/status', methods=['PATCH'])
 @jwt_required()
 def update_ticket_status(ticket_id):
-    """Update ticket status"""
+    """Update ticket status
+    ---
+    tags:
+      - Tickets
+    security:
+      - Bearer: []
+    parameters:
+      - name: ticket_id
+        in: path
+        type: string
+        required: true
+        description: Ticket ID
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - status
+          properties:
+            status:
+              type: string
+              description: New ticket status
+              enum: [active, used, expired, pending]
+              example: active
+    responses:
+      200:
+        description: Ticket status updated successfully
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+            ticket:
+              type: object
+      400:
+        description: Status required or invalid status
+      401:
+        description: Unauthorized
+      403:
+        description: Ticket does not belong to user
+      404:
+        description: Ticket not found
+      500:
+        description: Internal server error
+    """
     current_user_id = get_jwt_identity()
     
     try:
@@ -174,7 +328,39 @@ def update_ticket_status(ticket_id):
 @ticket_bp.route('/<ticket_id>/activate', methods=['POST'])
 @jwt_required()
 def activate_ticket(ticket_id):
-    """Activate a pending ticket (after payment confirmation)"""
+    """Activate a pending ticket (after payment confirmation)
+    ---
+    tags:
+      - Tickets
+    security:
+      - Bearer: []
+    parameters:
+      - name: ticket_id
+        in: path
+        type: string
+        required: true
+        description: Ticket ID
+    responses:
+      200:
+        description: Ticket activated successfully
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+            ticket:
+              type: object
+      400:
+        description: Ticket is not pending
+      401:
+        description: Unauthorized
+      403:
+        description: Ticket does not belong to user
+      404:
+        description: Ticket not found
+      500:
+        description: Internal server error
+    """
     current_user_id = get_jwt_identity()
     
     try:
@@ -204,7 +390,37 @@ def activate_ticket(ticket_id):
 @ticket_bp.route('/<ticket_id>/use', methods=['POST'])
 @jwt_required()
 def use_ticket(ticket_id):
-    """Mark ticket as used (for event organizers)"""
+    """Mark ticket as used (for event organizers)
+    ---
+    tags:
+      - Tickets
+    security:
+      - Bearer: []
+    parameters:
+      - name: ticket_id
+        in: path
+        type: string
+        required: true
+        description: Ticket ID
+    responses:
+      200:
+        description: Ticket marked as used
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+            ticket:
+              type: object
+      400:
+        description: Ticket is not active
+      401:
+        description: Unauthorized
+      404:
+        description: Ticket not found
+      500:
+        description: Internal server error
+    """
     try:
         ticket = Ticket.objects(id=ticket_id).first()
         
@@ -229,7 +445,37 @@ def use_ticket(ticket_id):
 @ticket_bp.route('/<ticket_id>', methods=['DELETE'])
 @jwt_required()
 def delete_ticket(ticket_id):
-    """Delete/cancel a ticket"""
+    """Delete/cancel a ticket
+    ---
+    tags:
+      - Tickets
+    security:
+      - Bearer: []
+    parameters:
+      - name: ticket_id
+        in: path
+        type: string
+        required: true
+        description: Ticket ID
+    responses:
+      200:
+        description: Ticket cancelled successfully
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+      400:
+        description: Cannot cancel used ticket
+      401:
+        description: Unauthorized
+      403:
+        description: Ticket does not belong to user
+      404:
+        description: Ticket not found
+      500:
+        description: Internal server error
+    """
     current_user_id = get_jwt_identity()
     
     try:

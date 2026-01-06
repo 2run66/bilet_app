@@ -30,7 +30,48 @@ def organizer_required(fn):
 @organizer_bp.route('/events', methods=['GET'])
 @organizer_required
 def get_organizer_events():
-    """Get all events created by the current organizer"""
+    """Get all events created by the current organizer
+    ---
+    tags:
+      - Organizer
+    security:
+      - Bearer: []
+    parameters:
+      - name: page
+        in: query
+        type: integer
+        description: Page number for pagination
+        default: 1
+        required: false
+      - name: per_page
+        in: query
+        type: integer
+        description: Items per page
+        default: 20
+        required: false
+    responses:
+      200:
+        description: List of organizer's events
+        schema:
+          type: object
+          properties:
+            events:
+              type: array
+              items:
+                type: object
+            total:
+              type: integer
+            pages:
+              type: integer
+            current_page:
+              type: integer
+      401:
+        description: Unauthorized
+      403:
+        description: Organizer access required
+      404:
+        description: User not found
+    """
     current_user_id = get_jwt_identity()
     user = User.objects(id=current_user_id).first()
     
@@ -55,7 +96,79 @@ def get_organizer_events():
 @organizer_bp.route('/events', methods=['POST'])
 @organizer_required
 def create_event():
-    """Create a new event"""
+    """Create a new event
+    ---
+    tags:
+      - Organizer
+    security:
+      - Bearer: []
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - title
+            - description
+            - category
+            - location
+            - date
+            - price
+            - availableTickets
+          properties:
+            title:
+              type: string
+              description: Event title
+              example: Summer Music Festival
+            description:
+              type: string
+              description: Event description
+              example: A fantastic outdoor music event
+            category:
+              type: string
+              description: Event category
+              example: Music
+            location:
+              type: string
+              description: Event location
+              example: Istanbul, Turkey
+            date:
+              type: string
+              format: date-time
+              description: Event date and time (ISO format)
+              example: "2025-07-15T18:00:00Z"
+            price:
+              type: number
+              description: Ticket price
+              example: 150.00
+            imageUrl:
+              type: string
+              description: Event image URL (optional)
+              example: https://example.com/image.jpg
+            availableTickets:
+              type: integer
+              description: Number of available tickets
+              example: 500
+    responses:
+      201:
+        description: Event created successfully
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+            event:
+              type: object
+      400:
+        description: Missing required fields or validation error
+      401:
+        description: Unauthorized
+      403:
+        description: Organizer access required
+      500:
+        description: Internal server error
+    """
     current_user_id = get_jwt_identity()
     user = User.objects(id=current_user_id).first()
     
@@ -101,7 +214,62 @@ def create_event():
 @organizer_bp.route('/events/<event_id>', methods=['PUT'])
 @organizer_required
 def update_event(event_id):
-    """Update an event"""
+    """Update an event
+    ---
+    tags:
+      - Organizer
+    security:
+      - Bearer: []
+    parameters:
+      - name: event_id
+        in: path
+        type: string
+        required: true
+        description: Event ID
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            title:
+              type: string
+            description:
+              type: string
+            category:
+              type: string
+            location:
+              type: string
+            date:
+              type: string
+              format: date-time
+            price:
+              type: number
+            imageUrl:
+              type: string
+            availableTickets:
+              type: integer
+    responses:
+      200:
+        description: Event updated successfully
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+            event:
+              type: object
+      400:
+        description: Validation error
+      401:
+        description: Unauthorized
+      403:
+        description: Not the event organizer
+      404:
+        description: Event not found
+      500:
+        description: Internal server error
+    """
     current_user_id = get_jwt_identity()
     user = User.objects(id=current_user_id).first()
     
@@ -153,7 +321,35 @@ def update_event(event_id):
 @organizer_bp.route('/events/<event_id>', methods=['DELETE'])
 @organizer_required
 def delete_event(event_id):
-    """Delete an event"""
+    """Delete an event
+    ---
+    tags:
+      - Organizer
+    security:
+      - Bearer: []
+    parameters:
+      - name: event_id
+        in: path
+        type: string
+        required: true
+        description: Event ID
+    responses:
+      200:
+        description: Event deleted successfully
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+      401:
+        description: Unauthorized
+      403:
+        description: Not the event organizer
+      404:
+        description: Event not found
+      500:
+        description: Internal server error
+    """
     current_user_id = get_jwt_identity()
     user = User.objects(id=current_user_id).first()
     
@@ -182,7 +378,63 @@ def delete_event(event_id):
 @organizer_bp.route('/events/<event_id>/attendees', methods=['GET'])
 @organizer_required
 def get_event_attendees(event_id):
-    """Get all attendees (ticket holders) for an event"""
+    """Get all attendees (ticket holders) for an event
+    ---
+    tags:
+      - Organizer
+    security:
+      - Bearer: []
+    parameters:
+      - name: event_id
+        in: path
+        type: string
+        required: true
+        description: Event ID
+    responses:
+      200:
+        description: List of attendees
+        schema:
+          type: object
+          properties:
+            event:
+              type: object
+              properties:
+                id:
+                  type: string
+                title:
+                  type: string
+                date:
+                  type: string
+            attendees:
+              type: array
+              items:
+                type: object
+                properties:
+                  ticketId:
+                    type: string
+                  userName:
+                    type: string
+                  userEmail:
+                    type: string
+                  userPhone:
+                    type: string
+                  status:
+                    type: string
+                  purchaseDate:
+                    type: string
+                  qrCode:
+                    type: string
+            total:
+              type: integer
+      401:
+        description: Unauthorized
+      403:
+        description: Not the event organizer
+      404:
+        description: Event not found
+      500:
+        description: Internal server error
+    """
     current_user_id = get_jwt_identity()
     user = User.objects(id=current_user_id).first()
     
@@ -231,7 +483,65 @@ def get_event_attendees(event_id):
 @organizer_bp.route('/validate-ticket', methods=['POST'])
 @organizer_required
 def validate_ticket():
-    """Validate a ticket by QR code"""
+    """Validate a ticket by QR code
+    ---
+    tags:
+      - Organizer
+    security:
+      - Bearer: []
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - qrCode
+          properties:
+            qrCode:
+              type: string
+              description: QR code data from ticket
+              example: "eyJldmVudElkIjogIjUwN2YxZjc3YmNmODZjZDc5OTQzOTAxMSIsIC..."
+    responses:
+      200:
+        description: Ticket validation result
+        schema:
+          type: object
+          properties:
+            valid:
+              type: boolean
+            message:
+              type: string
+            ticket:
+              type: object
+              properties:
+                id:
+                  type: string
+                eventTitle:
+                  type: string
+                eventLocation:
+                  type: string
+                eventDate:
+                  type: string
+                userName:
+                  type: string
+                userEmail:
+                  type: string
+                price:
+                  type: number
+                status:
+                  type: string
+      400:
+        description: QR code is required
+      401:
+        description: Unauthorized
+      403:
+        description: Organizer access required
+      404:
+        description: Ticket not found
+      500:
+        description: Internal server error
+    """
     data = request.get_json()
     
     if not data.get('qrCode'):
@@ -312,7 +622,37 @@ def validate_ticket():
 @organizer_bp.route('/stats', methods=['GET'])
 @organizer_required
 def get_organizer_stats():
-    """Get statistics for organizer's events"""
+    """Get statistics for organizer's events
+    ---
+    tags:
+      - Organizer
+    security:
+      - Bearer: []
+    responses:
+      200:
+        description: Organizer statistics
+        schema:
+          type: object
+          properties:
+            totalEvents:
+              type: integer
+              description: Total number of events created
+            upcomingEvents:
+              type: integer
+              description: Number of upcoming events
+            totalTicketsSold:
+              type: integer
+              description: Total tickets sold across all events
+            totalRevenue:
+              type: number
+              description: Total revenue from ticket sales
+      401:
+        description: Unauthorized
+      403:
+        description: Organizer access required
+      500:
+        description: Internal server error
+    """
     current_user_id = get_jwt_identity()
     user = User.objects(id=current_user_id).first()
     
@@ -339,4 +679,3 @@ def get_organizer_stats():
     
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-

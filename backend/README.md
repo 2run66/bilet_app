@@ -6,7 +6,6 @@ Flask backend for the Bilet ticketing application with MongoDB Atlas.
 
 ### Requirements
 - Python 3.12 (due to SSL compatibility issues with MongoDB Atlas)
-- Conda (miniconda3 or anaconda)
 
 ### Installation
 

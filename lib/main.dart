@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'routes/app_pages.dart';
 import 'services/auth_service.dart';
+import 'services/api_event_service.dart';
 import 'utils/app_theme.dart';
 
 void main() async {
@@ -11,6 +12,7 @@ void main() async {
 
   // Initialize Services
   Get.put(AuthService());
+  Get.put(ApiEventService());
 
   runApp(const MyApp());
 }

@@ -3,6 +3,7 @@ import '../services/auth_service.dart';
 import '../services/api_event_service.dart';
 import '../services/api_ticket_service.dart';
 import '../models/event_model.dart';
+import '../models/ticket_model.dart';
 
 class HomeController extends GetxController {
   final AuthService _authService = Get.find<AuthService>();
@@ -10,7 +11,7 @@ class HomeController extends GetxController {
   final ApiTicketService _ticketService = ApiTicketService();
 
   final userName = ''.obs;
-  final activeTickets = [].obs;
+  final activeTickets = <TicketModel>[].obs;
   final upcomingEvents = <EventModel>[].obs;
   final featuredEvents = <EventModel>[].obs;
   final categories = <String>["All", "Music", "Tech", "Sports", "Theatre"].obs;
@@ -50,7 +51,7 @@ class HomeController extends GetxController {
         upcomingOnly: true,
         limit: 20,
       );
-      
+
       print('✅ Loaded ${events.length} events from API');
       upcomingEvents.assignAll(events);
       featuredEvents.assignAll(events.take(3));
@@ -137,10 +138,14 @@ class HomeController extends GetxController {
 
   List<EventModel> get filteredUpcomingEvents {
     return upcomingEvents.where((event) {
-      final matchQuery = searchQuery.value.isEmpty ||
+      final matchQuery =
+          searchQuery.value.isEmpty ||
           event.title.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
-          event.location.toLowerCase().contains(searchQuery.value.toLowerCase());
-      final matchCategory = selectedCategory.value == 'All' ||
+          event.location.toLowerCase().contains(
+            searchQuery.value.toLowerCase(),
+          );
+      final matchCategory =
+          selectedCategory.value == 'All' ||
           event.category == selectedCategory.value;
       return matchQuery && matchCategory;
     }).toList();

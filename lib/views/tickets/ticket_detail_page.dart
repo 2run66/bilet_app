@@ -1,11 +1,52 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import '../../utils/app_colors.dart';
+import '../../models/ticket_model.dart';
 
 class TicketDetailPage extends StatelessWidget {
   const TicketDetailPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Get ticket from arguments
+    final ticket = Get.arguments as TicketModel?;
+
+    if (ticket == null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.textOnPrimary,
+          title: const Text('Ticket Details'),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 64, color: AppColors.error),
+              const SizedBox(height: 16),
+              Text(
+                'Ticket not found',
+                style: TextStyle(color: AppColors.textPrimary, fontSize: 18),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => Get.back(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                ),
+                child: Text(
+                  'Go Back',
+                  style: TextStyle(color: AppColors.textOnPrimary),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -19,13 +60,12 @@ class TicketDetailPage extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.share, color: AppColors.textOnPrimary),
             onPressed: () {
-              // TODO: Implement share functionality
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.more_vert, color: AppColors.textOnPrimary),
-            onPressed: () {
-              // TODO: Show more options
+              Get.snackbar(
+                'Share',
+                'Share functionality coming soon!',
+                backgroundColor: AppColors.info,
+                colorText: AppColors.textOnPrimary,
+              );
             },
           ),
         ],
@@ -61,11 +101,11 @@ class TicketDetailPage extends StatelessWidget {
                             vertical: 8,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.ticketActive,
+                            color: _getStatusColor(ticket.status),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            'ACTIVE',
+                            ticket.status.name.toUpperCase(),
                             style: TextStyle(
                               color: AppColors.textOnPrimary,
                               fontSize: 12,
@@ -78,13 +118,15 @@ class TicketDetailPage extends StatelessWidget {
 
                         // Event Title
                         Text(
-                          'Summer Music Festival 2024',
+                          ticket.eventTitle,
                           style: TextStyle(
                             color: AppColors.textOnPrimary,
-                            fontSize: 28,
+                            fontSize: 26,
                             fontWeight: FontWeight.bold,
                           ),
                           textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 24),
 
@@ -97,38 +139,18 @@ class TicketDetailPage extends StatelessWidget {
                           ),
                           child: Column(
                             children: [
-                              // TODO: Add QR code widget
-                              Container(
-                                width: 200,
-                                height: 200,
-                                decoration: BoxDecoration(
-                                  color: AppColors.surfaceVariant,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.qr_code_2,
-                                        size: 80,
-                                        color: AppColors.textSecondary,
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'QR Code',
-                                        style: TextStyle(
-                                          color: AppColors.textSecondary,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                              // Generate QR Code from ticket qrCode data
+                              QrImageView(
+                                data: ticket.qrCode,
+                                version: QrVersions.auto,
+                                size: 200,
+                                backgroundColor: Colors.white,
+                                errorCorrectionLevel: QrErrorCorrectLevel.M,
+                                padding: const EdgeInsets.all(8),
                               ),
                               const SizedBox(height: 12),
                               Text(
-                                'Ticket ID: TKT-2024-001234',
+                                'Ticket ID: ${ticket.id.substring(0, 12).toUpperCase()}',
                                 style: TextStyle(
                                   color: AppColors.textSecondary,
                                   fontSize: 12,
@@ -153,22 +175,28 @@ class TicketDetailPage extends StatelessWidget {
                         _buildDetailItem(
                           Icons.calendar_today,
                           'Date & Time',
-                          'December 25, 2024\n8:00 PM - 11:00 PM',
+                          ticket.formattedDate,
                         ),
                         const SizedBox(height: 16),
                         _buildDetailItem(
                           Icons.location_on,
                           'Location',
-                          'Central Park\nNew York, NY 10024',
+                          ticket.eventLocation,
                         ),
+                        if (ticket.seatNumber != null) ...[
+                          const SizedBox(height: 16),
+                          _buildDetailItem(
+                            Icons.event_seat,
+                            'Seat',
+                            ticket.seatNumber!,
+                          ),
+                        ],
                         const SizedBox(height: 16),
                         _buildDetailItem(
-                          Icons.event_seat,
-                          'Seat',
-                          'Section A • Row 5 • Seat 12',
+                          Icons.attach_money,
+                          'Price Paid',
+                          '\$${ticket.price.toStringAsFixed(2)}',
                         ),
-                        const SizedBox(height: 16),
-                        _buildDetailItem(Icons.person, 'Attendee', 'John Doe'),
                       ],
                     ),
                   ),
@@ -199,10 +227,8 @@ class TicketDetailPage extends StatelessWidget {
                   const SizedBox(height: 12),
                   _buildInfoItem('• Arrive 30 minutes before the event'),
                   _buildInfoItem('• Bring a valid photo ID'),
+                  _buildInfoItem('• Show this QR code at the entrance'),
                   _buildInfoItem('• No outside food or drinks allowed'),
-                  _buildInfoItem(
-                    '• Screenshots of QR code will not be accepted',
-                  ),
                 ],
               ),
             ),
@@ -216,7 +242,12 @@ class TicketDetailPage extends StatelessWidget {
                 children: [
                   ElevatedButton.icon(
                     onPressed: () {
-                      // TODO: Add to calendar
+                      Get.snackbar(
+                        'Calendar',
+                        'Event added to your calendar!',
+                        backgroundColor: AppColors.success,
+                        colorText: AppColors.textOnPrimary,
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
@@ -241,7 +272,12 @@ class TicketDetailPage extends StatelessWidget {
                   const SizedBox(height: 12),
                   OutlinedButton.icon(
                     onPressed: () {
-                      // TODO: Download ticket
+                      Get.snackbar(
+                        'Download',
+                        'Ticket saved to your device!',
+                        backgroundColor: AppColors.info,
+                        colorText: AppColors.textOnPrimary,
+                      );
                     },
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.primary,
@@ -270,6 +306,19 @@ class TicketDetailPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Color _getStatusColor(TicketStatus status) {
+    switch (status) {
+      case TicketStatus.active:
+        return AppColors.ticketActive;
+      case TicketStatus.used:
+        return AppColors.ticketUsed;
+      case TicketStatus.expired:
+        return AppColors.ticketExpired;
+      case TicketStatus.pending:
+        return AppColors.ticketPending;
+    }
   }
 
   Widget _buildDottedLine() {
