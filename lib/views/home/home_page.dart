@@ -319,92 +319,106 @@ class HomePage extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
+            // Top section
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.confirmation_number,
-                  color: AppColors.textOnPrimary,
-                  size: 20,
+                Row(
+                  children: [
+                    Icon(
+                      Icons.confirmation_number,
+                      color: AppColors.textOnPrimary,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'TICKET',
+                      style: TextStyle(
+                        color: AppColors.textOnPrimary,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(height: 10),
                 Text(
-                  'TICKET',
+                  ticket.eventTitle,
                   style: TextStyle(
                     color: AppColors.textOnPrimary,
-                    fontSize: 12,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              ticket.eventTitle,
-              style: TextStyle(
-                color: AppColors.textOnPrimary,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(
-                  Icons.calendar_today,
-                  color: AppColors.textOnPrimary.withValues(alpha: 0.8),
-                  size: 14,
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    ticket.formattedDate,
-                    style: TextStyle(
-                      color: AppColors.textOnPrimary.withValues(alpha: 0.8),
-                      fontSize: 12,
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_today,
+                      color: AppColors.textOnPrimary.withOpacity(0.8),
+                      size: 12,
                     ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Icon(
-                  Icons.location_on,
-                  color: AppColors.textOnPrimary.withValues(alpha: 0.8),
-                  size: 14,
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    ticket.eventLocation,
-                    style: TextStyle(
-                      color: AppColors.textOnPrimary.withValues(alpha: 0.8),
-                      fontSize: 12,
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        ticket.formattedDate,
+                        style: TextStyle(
+                          color: AppColors.textOnPrimary.withOpacity(0.8),
+                          fontSize: 11,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.location_on,
+                      color: AppColors.textOnPrimary.withOpacity(0.8),
+                      size: 12,
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        ticket.eventLocation,
+                        style: TextStyle(
+                          color: AppColors.textOnPrimary.withOpacity(0.8),
+                          fontSize: 11,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-            const Spacer(),
-            ElevatedButton(
-              onPressed: () {
-                Get.toNamed('/ticket-detail', arguments: ticket);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.textOnPrimary,
-                foregroundColor: AppColors.primary,
-                minimumSize: const Size(double.infinity, 40),
+            // Button at bottom
+            SizedBox(
+              width: double.infinity,
+              height: 36,
+              child: ElevatedButton(
+                onPressed: () {
+                  Get.toNamed('/ticket-detail', arguments: ticket);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.textOnPrimary,
+                  foregroundColor: AppColors.primary,
+                  padding: EdgeInsets.zero,
+                ),
+                child: const Text(
+                  'View Ticket',
+                  style: TextStyle(fontSize: 13),
+                ),
               ),
-              child: const Text('View Ticket'),
             ),
           ],
         ),

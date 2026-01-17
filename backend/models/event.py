@@ -7,7 +7,8 @@ class Event(Document):
     """Event model for ticket booking system"""
     meta = {
         'collection': 'events',
-        'indexes': ['category', 'date']
+        'indexes': ['category', 'date'],
+        'strict': False  # Allow documents with fields not defined in the model
     }
     
     title = StringField(required=True, max_length=200)

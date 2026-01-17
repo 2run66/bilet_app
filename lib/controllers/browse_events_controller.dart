@@ -4,7 +4,7 @@ import '../models/event_model.dart';
 
 class BrowseEventsController extends GetxController {
   final ApiEventService _eventService = ApiEventService();
-  
+
   final searchQuery = ''.obs;
   final selectedCategory = 'All'.obs;
   final allEvents = <EventModel>[].obs;
@@ -22,13 +22,19 @@ class BrowseEventsController extends GetxController {
   List<EventModel> get filteredEvents {
     return allEvents.where((event) {
       // Filter by search query
-      final matchesSearch = searchQuery.value.isEmpty ||
+      final matchesSearch =
+          searchQuery.value.isEmpty ||
           event.title.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
-          event.description.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
-          event.location.toLowerCase().contains(searchQuery.value.toLowerCase());
+          event.description.toLowerCase().contains(
+            searchQuery.value.toLowerCase(),
+          ) ||
+          event.location.toLowerCase().contains(
+            searchQuery.value.toLowerCase(),
+          );
 
       // Filter by category
-      final matchesCategory = selectedCategory.value == 'All' ||
+      final matchesCategory =
+          selectedCategory.value == 'All' ||
           event.category == selectedCategory.value;
 
       return matchesSearch && matchesCategory;
@@ -58,8 +64,9 @@ class BrowseEventsController extends GetxController {
     try {
       print('🔍 [BrowseEvents] Loading events...');
       final events = await _eventService.getAllEvents(
-        category: selectedCategory.value != 'All' ? selectedCategory.value : null,
-        upcomingOnly: true,
+        category: selectedCategory.value != 'All'
+            ? selectedCategory.value
+            : null,
       );
       print('✅ [BrowseEvents] Loaded ${events.length} events');
       allEvents.assignAll(events);
@@ -67,7 +74,7 @@ class BrowseEventsController extends GetxController {
       print('❌ [BrowseEvents] Load events error: $e');
       Get.snackbar('Error', 'Failed to load events');
     } finally {
-    isLoading.value = false;
+      isLoading.value = false;
     }
   }
 

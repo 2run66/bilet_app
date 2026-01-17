@@ -46,11 +46,8 @@ class HomeController extends GetxController {
   Future<void> _loadEvents() async {
     try {
       print('🔍 Loading events from API...');
-      // Load upcoming events from API
-      final events = await _eventService.getAllEvents(
-        upcomingOnly: true,
-        limit: 20,
-      );
+      // Load events from API
+      final events = await _eventService.getAllEvents(limit: 20);
 
       print('✅ Loaded ${events.length} events from API');
       upcomingEvents.assignAll(events);

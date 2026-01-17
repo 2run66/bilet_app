@@ -8,14 +8,12 @@ class ApiEventService extends GetxService {
   /// Get all events with optional filters
   Future<List<EventModel>> getAllEvents({
     String? category,
-    bool? upcomingOnly,
     int? page,
     int? limit,
   }) async {
     try {
       final queryParams = <String, dynamic>{};
       if (category != null) queryParams['category'] = category;
-      if (upcomingOnly != null) queryParams['upcoming'] = upcomingOnly;
       if (page != null) queryParams['page'] = page;
       if (limit != null) queryParams['limit'] = limit;
 
@@ -133,7 +131,6 @@ class ApiEventService extends GetxService {
   Future<List<EventModel>> getEvents({
     String? category,
     String? search,
-    bool upcomingOnly = false,
     int page = 1,
     int perPage = 20,
   }) async {
@@ -143,7 +140,6 @@ class ApiEventService extends GetxService {
         'per_page': perPage,
         if (category != null) 'category': category,
         if (search != null && search.isNotEmpty) 'search': search,
-        if (upcomingOnly) 'upcoming': 'true',
       };
 
       final response = await _api.get('/events/', queryParameters: queryParams);
